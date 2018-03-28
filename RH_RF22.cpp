@@ -331,14 +331,30 @@ uint8_t RH_RF22::adcRead(uint8_t adcsel,
                       uint8_t adcgain, 
                       uint8_t adcoffs)
 {
-    uint8_t configuration = adcsel | adcref | (adcgain & RH_RF22_ADCGAIN);
-    spiWrite(RH_RF22_REG_0F_ADC_CONFIGURATION, configuration | RH_RF22_ADCSTART);
-    spiWrite(RH_RF22_REG_10_ADC_SENSOR_AMP_OFFSET, adcoffs);
+    volatile uint8_t configuration = adcsel | adcref | (adcgain & RH_RF22_ADCGAIN);
 
+    // set the ADC configuration
+    spiWrite(RH_RF22_REG_0F_ADC_CONFIGURATION, configuration);
+    // set the ADC output value offset
+    spiWrite(RH_RF22_REG_10_ADC_SENSOR_AMP_OFFSET, adcoffs);
+    // start the conversion
+    spiWrite(RH_RF22_REG_0F_ADC_CONFIGURATION, RH_RF22_ADCSTART | configuration);
+
+    // It appears there is a problem with the RFM22 ADC where the ADCDONE bit does not
+    // always get set after a conversion has completed.  This will cause the while() loop
+    // to become an infinite loop - not good!
+    // As a workaround, this has been replaced with a fixed 500 microsecond delay.
+    // This should be plenty, as the Si4432 data sheet indicates the conversion time is about
+    // 305 microseconds (2017-07-06  M.K.)
+#ifdef _WAIT_FOR_ADCDONE_BIT
     // Conversion time is nominally 305usec
     // Wait for the DONE bit
     while (!(spiRead(RH_RF22_REG_0F_ADC_CONFIGURATION) & RH_RF22_ADCDONE))
 	;
+#else
+    delayMicroseconds(500);
+#endif	//_WAIT_FOR_ADCDONE_BIT
+
     // Return the value  
     return spiRead(RH_RF22_REG_11_ADC_VALUE);
 }
