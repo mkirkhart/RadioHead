@@ -80,6 +80,8 @@ void RHHardwareSPI::begin()
     // Arduino Due in 1.5.5 has its own BitOrder :-(
     // So too does Arduino Zero
     ::BitOrder bOrder;
+  #elif (RH_PLATFORM == RH_PLATFORM_NRF51)
+    ::BitOrder bOrder;
   #else
     uint8_t bOrder;
   #endif
@@ -378,7 +380,8 @@ void RHHardwareSPI::begin()
 	     SPI.setFrequency(16000000);
 	     break;
      }
-
+#elif (RH_PLATFORM == RH_PLATFORM_NRF51) 
+   SPI.begin();
 #elif (RH_PLATFORM == RH_PLATFORM_RASPI) // Raspberry PI
   uint8_t dataMode;
   if (_dataMode == DataMode0)

@@ -903,6 +903,8 @@
  #define SS 8
 
 #elif (RH_PLATFORM == RH_PLATFORM_NRF51)
+ #define RH_HAVE_HARDWARE_SPI   // <--Added this
+ #include <SPI.h>                 // <--and this
  #define RH_HAVE_SERIAL
  #define PROGMEM
   #include <Arduino.h>
